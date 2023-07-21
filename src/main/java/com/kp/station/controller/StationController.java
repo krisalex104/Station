@@ -42,14 +42,14 @@ public class StationController {
     }
 
     @RequestMapping("/details")
-    ResponseEntity<List<StationDetailResponseDto>>  getAllStationDetails(@Valid @RequestBody StationDetailsRequestDto requestDto){
-        List<StationDetailResponseDto> responseDtoList = stationService.fetchAllStationDetails(requestDto,FETCH_STATIONS_DETAILS);
+    ResponseEntity<List<StationDetailResponseDto>>  getAllStationDetails(@RequestParam("fromDate") String fromDate, @RequestParam("toDate") String toDate){
+        List<StationDetailResponseDto> responseDtoList = stationService.fetchAllStationDetails(fromDate,toDate,FETCH_STATIONS_DETAILS);
         return ResponseEntity.ok(responseDtoList);
     }
 
     @GetMapping
-    CompletionStage<ResponseEntity<List<StationDetailResponseDto>>> fetchAllStationsDetails(@Valid @RequestBody StationDetailsRequestDto requestDto){
-        List<StationDetailResponseDto> responseDtoList = stationService.fetchAllStationDetails(requestDto,FETCH_STATIONS_DETAILS);
+    CompletionStage<ResponseEntity<List<StationDetailResponseDto>>> fetchAllStationsDetails(@RequestParam("fromDate") String fromDate, @RequestParam("toDate") String toDate){
+        List<StationDetailResponseDto> responseDtoList = stationService.fetchAllStationDetails(fromDate,toDate,FETCH_STATIONS_DETAILS);
         return CompletableFuture.completedFuture(ResponseEntity.ok(responseDtoList));
     }
 }

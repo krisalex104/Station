@@ -13,6 +13,6 @@ import javax.validation.constraints.Size;
 @Builder
 public class EntryRequestDto {
     @NotNull
-    @Size(min=5, message="station name must not be less than 5 characters")
+    @Size(min=3,max = 30,message="Station name must not be less than 3 and greater 30 characters")
     private String stationName;
 }

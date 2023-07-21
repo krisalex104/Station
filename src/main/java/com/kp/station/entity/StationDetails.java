@@ -4,17 +4,18 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-@Table(name = "station")
+@Table(name = "station_details")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class Station {
+public class StationDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,11 +25,14 @@ public class Station {
     @Column(name = "name",nullable = false)
     private String name;
 
-    @Column(name = "isEntry",nullable = false)
-    private Boolean isEntry;
+    @Column(name = "total_entry",nullable = false)
+    private Integer totalEntry;
 
-    @Column(name="created_on",nullable = false, columnDefinition = "DATETIME")
-    @DateTimeFormat(pattern = "yyyy-MM-dd hh:mm:ss")
-    private LocalDateTime createdOn;
+    @Column(name = "total_exit",nullable = false)
+    private Integer totalExit;
+    @Column(name="created_on",nullable = false ,columnDefinition = "DATETIME")
+    private Timestamp createdOn;
 
 }
+
+

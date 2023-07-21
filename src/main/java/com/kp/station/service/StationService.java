@@ -12,7 +12,9 @@ public interface StationService {
     StationResponseDto saveEntryDetails(EntryRequestDto entryRequestDto,String operation);
     StationResponseDto saveExitDetails(EntryRequestDto entryRequestDto,String operation);
 
-    List<StationDetailResponseDto> fetchAllStationDetails(StationDetailsRequestDto requestDto,String operation);
+    List<StationDetailResponseDto> fetchAllStationDetails(String fromDate,String toDate,String operation);
+
+
 
 
 }

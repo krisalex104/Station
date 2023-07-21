@@ -4,16 +4,24 @@ import com.kp.station.dto.EntryRequestDto;
 import com.kp.station.dto.StationDetailResponseDto;
 import com.kp.station.dto.StationDetailsRequestDto;
 import com.kp.station.dto.StationResponseDto;
+import com.kp.station.entity.Station;
+import com.kp.station.exception.Error;
+import com.kp.station.exception.ServiceException;
 import com.kp.station.repository.StationRepository;
 import com.kp.station.service.StationServiceImpl;
+import com.kp.station.utils.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,49 +36,93 @@ class StationApplicationTests {
 	@InjectMocks
 	private StationServiceImpl stationService;
 
-	@Test
-	public void testSaveEntryDetails() {
-		EntryRequestDto entryRequestDto = EntryRequestDto.builder()
-				.stationName("Anand Vihar")
-				.build();
+	@InjectMocks
+	private DateUtils dateUtils;
 
-		StationResponseDto responseDto = stationService.saveEntryDetails(entryRequestDto, "SAVE-ENTRY-DETAILS");
-		assertNotNull(responseDto);
-		assertEquals("Station entry details has been saved successFully", responseDto.getMessage());
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.initMocks(this);
 	}
 
 	@Test
-	public void testSaveExitDetails() {
-		EntryRequestDto entryRequestDto = EntryRequestDto.builder()
-				.stationName("New Delhi")
+	void testSaveEntryDetails() {
+		EntryRequestDto entryRequestDto = new EntryRequestDto();
+		entryRequestDto.setStationName("Test Station");
+
+		StationResponseDto expectedResponse = StationResponseDto.builder()
+				.message("Station entry details has been saved successfully")
 				.build();
 
-		StationResponseDto responseDto = stationService.saveExitDetails(entryRequestDto, "SAVE-EXIT-DETAILS");
-		assertNotNull(responseDto);
-		assertEquals("Station exit details has been saved successFully", responseDto.getMessage());
+		when(stationRepository.save(Mockito.any(Station.class))).thenReturn(null);
+
+		StationResponseDto response = stationService.saveEntryDetails(entryRequestDto, "operation");
+		assertEquals(expectedResponse.getMessage(), response.getMessage());
 	}
 
 	@Test
-	public void testFetchAllStationDetails() {
-		StationDetailsRequestDto requestDto = StationDetailsRequestDto.builder()
-				.startDate("2023-07-20 11:55:06.690000")
-				.endDate("2023-07-20 19:55:06.690000")
+	void testSaveExitDetails() {
+		EntryRequestDto entryRequestDto = new EntryRequestDto();
+		entryRequestDto.setStationName("Test Station");
+
+		StationResponseDto expectedResponse = StationResponseDto.builder()
+				.message("Station exit details has been saved successfully")
 				.build();
 
-		List<Object[]> mockEntryExitCounts = new ArrayList<>();
-		mockEntryExitCounts.add(new Object[]{"New Delhi", BigInteger.valueOf(5), BigInteger.valueOf(3)});
-		when(stationRepository.getEntryExitCountsBetweenDates(any(), any())).thenReturn(mockEntryExitCounts);
+		when(stationRepository.save(Mockito.any(Station.class))).thenReturn(null);
 
-		List<StationDetailResponseDto> responseDtoList = stationService.fetchAllStationDetails(requestDto, "FETCH-STATIONS_DETAILS");
-
-		assertNotNull(responseDtoList);
-		assertFalse(responseDtoList.isEmpty());
-		assertEquals(1, responseDtoList.size());
-
-		StationDetailResponseDto responseDto = responseDtoList.get(0);
-		assertEquals("New Delhi", responseDto.getStationName());
-		assertEquals(5, responseDto.getTotalEntry());
-		assertEquals(3, responseDto.getTotalExit());
+		StationResponseDto response = stationService.saveExitDetails(entryRequestDto, "operation");
+		assertEquals(expectedResponse.getMessage(), response.getMessage());
 	}
+
+
+	@Test
+	void testFetchAllStationDetails_ValidDates_ReturnsData() throws ParseException {
+		String fromDate = "2023-07-20";
+		String toDate = "2023-07-21";
+
+		List<Object[]> entryExitCounts = new ArrayList<>();
+
+		when(stationRepository.getEntryExitCountsBetweenDates(Mockito.any(), Mockito.any()))
+				.thenReturn(entryExitCounts);
+
+		List<StationDetailResponseDto> response = stationService.fetchAllStationDetails(fromDate, toDate, "FETCH_STATION_DETAILS");
+
+		assertEquals(entryExitCounts.size(), response.size());
+
+	}
+
+	@Test
+	void testFetchAllStationDetails_InvalidFromDate_ThrowsServiceException() {
+		String fromDate = "";
+		String toDate = "2023-07-21";
+
+		ServiceException exception = assertThrows(ServiceException.class, () ->
+				stationService.fetchAllStationDetails(fromDate, toDate, "operation"));
+
+		assertEquals(Error.FROM_DATE_IS_NULL, exception.getError());
+	}
+
+	@Test
+	void testFetchAllStationDetails_InvalidToDate_ThrowsServiceException() {
+		String fromDate = "2023-07-20";
+		String toDate = "";
+
+		ServiceException exception = assertThrows(ServiceException.class, () ->
+				stationService.fetchAllStationDetails(fromDate, toDate, "operation"));
+
+		assertEquals(Error.TO_DATE_IS_NULL, exception.getError());
+	}
+
+	@Test
+	void testFetchAllStationDetails_EmptyEntryExitCounts_ReturnsEmptyList() {
+		String fromDate = "2023-07-20";
+		String toDate = "2023-07-21";
+
+		when(stationRepository.getEntryExitCountsBetweenDates(Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
+
+		List<StationDetailResponseDto> response = stationService.fetchAllStationDetails(fromDate, toDate, "operation");
+		assertTrue(response.isEmpty());
+	}
+
 
 }
